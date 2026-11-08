@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="gradShield" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a" />
+      <stop offset="50%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="gradGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+  </defs>
+
+  <!-- Base Circular Shield -->
+  <circle cx="60" cy="60" r="56" fill="url(#gradShield)" stroke="#ffffff" stroke-width="3" />
+  
+  <!-- Outer Ring Accent -->
+  <circle cx="60" cy="60" r="51" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="4,2" />
+
+  <!-- Open Book of Knowledge -->
+  <path d="M60 76 C50 68 35 68 28 72 L28 46 C35 42 50 42 60 48 C70 42 85 42 92 46 L92 72 C85 68 70 68 60 76 Z" fill="#ffffff" />
+  <path d="M60 48 L60 76" stroke="#1e3a8a" stroke-width="2" />
+  <path d="M36 53 C44 50 52 51 56 55" stroke="#94a3b8" stroke-width="1.5" fill="none" />
+  <path d="M36 60 C44 57 52 58 56 62" stroke="#94a3b8" stroke-width="1.5" fill="none" />
+  <path d="M84 53 C76 50 68 51 64 55" stroke="#94a3b8" stroke-width="1.5" fill="none" />
+  <path d="M84 60 C76 57 68 58 64 62" stroke="#94a3b8" stroke-width="1.5" fill="none" />
+
+  <!-- Torch of Wisdom -->
+  <path d="M58 46 L62 46 L61 34 L59 34 Z" fill="url(#gradGold)" />
+  <path d="M60 22 C64 26 66 30 62 34 C58 34 56 30 60 22 Z" fill="#ef4444" />
+  <path d="M60 25 C62 27 63 30 61 32 C59 32 58 30 60 25 Z" fill="#fbbf24" />
+
+  <!-- Institutional Monogram Ribbon -->
+  <rect x="25" y="84" width="70" height="16" rx="4" fill="#fbbf24" />
+  <text x="60" y="96" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" font-weight="900" fill="#0f172a" letter-spacing="1">L.B. ROSSANA MELIDEI</text>
+  
+  <!-- Mini Stars -->
+  <circle cx="34" cy="38" r="2.5" fill="#fbbf24" />
+  <circle cx="86" cy="38" r="2.5" fill="#fbbf24" />
+</svg>
