@@ -220,23 +220,23 @@ if ($pdo) {
         }
     </style>
 </head>
-<body class="bg-app min-h-screen">
+<body class="bg-app min-h-screen has-bottom-nav">
     <!-- Barra Superior de Control de Impresión (Se oculta al imprimir) -->
     <div class="glass-header no-print">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-3">
-                <a href="dashboard_admin.php" class="btn btn-subtle btn-sm text-xs">
-                    ← Volver al Panel
+        <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+                <a href="dashboard_admin.php" class="btn btn-subtle btn-sm text-xs px-2.5 py-1">
+                    ← Volver
                 </a>
                 <div>
-                    <h2 class="text-sm font-bold text-slate-800">Generador de Carnets Escolares</h2>
-                    <span class="text-xs text-slate-500"><?= count($estudiantes) ?> carnets listos para imprimir</span>
+                    <h2 class="text-xs sm:text-sm font-bold text-slate-800 leading-tight">Generador de Carnets Escolares</h2>
+                    <span class="text-[11px] text-slate-500"><?= count($estudiantes) ?> carnets listos para imprimir</span>
                 </div>
             </div>
 
             <!-- Filtros Rápidos -->
-            <form method="GET" class="flex items-center gap-2">
-                <select name="ano" class="form-control text-xs py-1" onchange="this.form.submit()">
+            <form method="GET" class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <select name="ano" class="form-control text-xs py-1 px-2.5 flex-1 sm:w-32" onchange="this.form.submit()">
                     <option value="">Todos los Años</option>
                     <option value="1er Año" <?= $filtroAno === '1er Año' ? 'selected' : '' ?>>1er Año</option>
                     <option value="2do Año" <?= $filtroAno === '2do Año' ? 'selected' : '' ?>>2do Año</option>
@@ -245,9 +245,24 @@ if ($pdo) {
                     <option value="5to Año" <?= $filtroAno === '5to Año' ? 'selected' : '' ?>>5to Año</option>
                 </select>
 
-                <select name="seccion" class="form-control text-xs py-1" onchange="this.form.submit()">
-                    <option value="">Todas las Secciones</option>
+                <select name="seccion" class="form-control text-xs py-1 px-2.5 flex-1 sm:w-28" onchange="this.form.submit()">
+                    <option value="">Sección</option>
                     <option value="A" <?= $filtroSeccion === 'A' ? 'selected' : '' ?>>Sección A</option>
+                    <option value="B" <?= $filtroSeccion === 'B' ? 'selected' : '' ?>>Sección B</option>
+                    <option value="C" <?= $filtroSeccion === 'C' ? 'selected' : '' ?>>Sección C</option>
+                </select>
+
+                <button type="button" class="btn btn-mint btn-sm text-xs w-full sm:w-auto" onclick="window.print()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                        <rect x="6" y="14" width="12" height="8"></rect>
+                    </svg>
+                    Imprimir / PDF
+                </button>
+            </form>
+        </div>
+    </div>
                     <option value="B" <?= $filtroSeccion === 'B' ? 'selected' : '' ?>>Sección B</option>
                     <option value="C" <?= $filtroSeccion === 'C' ? 'selected' : '' ?>>Sección C</option>
                 </select>
