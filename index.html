@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Control de Asistencia - Liceo Bolivariano "Rossana Melidei"</title>
+    
+    <!-- Fuentes Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Hojas de Estilo Glassmorphism & Colores Pasteles -->
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+
+    <!-- Chart.js 4 & Html5-Qrcode CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+    <style>
+        .nav-pill {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #475569;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(226, 232, 240, 0.7);
+        }
+        .nav-pill:hover {
+            background: #ffffff;
+            color: #1e293b;
+            transform: translateY(-1px);
+        }
+        .nav-pill.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: #ffffff;
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .arch-code-box {
+            background: #0f172a;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            padding: 16px;
+            border-radius: 14px;
+            overflow-x: auto;
+        }
+        .demo-switch-badge {
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+        }
+    </style>
+</head>
+<body class="bg-app min-h-screen flex flex-col">
+
+    <!-- Barra Superior Glassmorphic -->
+    <header class="glass-header">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <img src="assets/img/logo_liceo.svg" alt="Emblema Liceo" width="44" height="44" class="rounded-full shadow-sm">
+                <div>
+                    <h1 class="text-sm md:text-base font-extrabold text-slate-800 leading-tight">
+                        Liceo Bolivariano "Rossana Melidei"
+                    </h1>
+                    <div class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                        <span>Control de Asistencia Escolar</span>
+                        <span>&bull;</span>
+                        <span class="chip chip-mint" style="font-size: 10px; padding: 1px 6px;">PHP 8 + MySQL (XAMPP)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menú de Navegación del Portal Interactivo -->
+            <div class="flex flex-wrap items-center gap-2">
+                <button type="button" class="nav-pill active" onclick="cambiarSeccion('scanner')">
+                    📷 Escáner QR Docente
+                </button>
+                <button type="button" class="nav-pill" onclick="cambiarSeccion('admin')">
+                    📊 Dashboard Admin
+                </button>
+                <button type="button" class="nav-pill" onclick="cambiarSeccion('carnets')">
+                    🪪 Carnets (PDF)
+                </button>
+                <button type="button" class="nav-pill" onclick="cambiarSeccion('arquitectura')">
+                    🏗️ Arquitectura & SQL
+                </button>
+                <a href="login.php" class="btn btn-primary btn-sm text-xs ml-2">
+                    Ingresar (PHP)
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sub-Barra de Estado del Sistema y Modos de Demostración -->
+    <div class="max-w-7xl w-full mx-auto px-4 pt-3 pb-1 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-3">
+            <span id="global-ip-badge" class="chip chip-blue demo-switch-badge" onclick="toggleIPSimulada()" title="Clic para alternar simulación de IP autorizada vs bloqueada">
+                🌐 IP: <strong id="current-ip-text">192.168.1.45</strong> (Red Liceo Autorizada)
+            </span>
+            <span id="global-network-badge" class="chip chip-mint demo-switch-badge" onclick="toggleOfflineSimulado()" title="Clic para alternar entre Modo Online y Modo Offline de Contingencia">
+                🟢 Estado: <strong id="current-network-text">En Línea</strong>
+            </span>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-slate-500">Cola Local Contingencia:</span>
+            <span id="offline-counter-pill" class="chip chip-amber font-mono font-bold">0 pendientes</span>
+            <button type="button" class="btn btn-subtle btn-sm text-xs py-1" onclick="forzarSincronizacionOffline()">
+                ⚡ Sincronizar Cola
+            </button>
+        </div>
+    </div>
+
+    <!-- Contenedor Principal de Vistas -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6">
+
+        <!-- ==================================================================== -->
+        <!-- SECCIÓN 1: ESCÁNER QR EN VIVO (ROL PROFESOR)                        -->
+        <!-- ==================================================================== -->
+        <section id="sec-scanner" class="animate-fade-in">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="chip chip-mint">Módulo del Docente</span>
+                        <span class="text-xs text-slate-500">Cátedra: <strong>Matemáticas y Cálculo &bull; 4to Año "A"</strong></span>
+                    </div>
+                    <h2 class="text-2xl font-extrabold text-slate-800">Escáner QR de Asistencia en Tiempo Real</h2>
+                    <p class="text-xs text-slate-600">
+                        Compatible con cámaras traseras de móviles, retroalimentación sonora por Web Audio API y almacenamiento contingente offline.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="btn btn-rose text-xs" onclick="abrirModalCierreLista()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 14 14"></polyline>
+                        </svg>
+                        Cierre de Lista
+                    </button>
+                    <button type="button" class="btn btn-subtle text-xs" onclick="abrirModalNotaAtencion()">
+                        + Nota de Atención
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Visor del Escáner y Cámara -->
+                <div class="lg:col-span-2 glass-card p-5 flex flex-col items-center">
+                    <div class="w-full flex items-center justify-between pb-3 border-b border-slate-200/70 mb-4">
+                        <div class="flex items-center gap-2">
+                            <span class="chip chip-blue text-xs">Sesión 07:00 AM - 08:30 AM</span>
+                            <span class="text-xs text-slate-500">Tolerancia puntual: 15 min</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" id="btn-demo-start-cam" class="btn btn-primary btn-sm text-xs" onclick="iniciarCamaraDemo()">
+                                Encender Cámara
+                            </button>
+                            <button type="button" id="btn-demo-stop-cam" class="btn btn-rose btn-sm text-xs" style="display:none;" onclick="detenerCamaraDemo()">
+                                Apagar Cámara
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Cuadro de la cámara con overlay de escaneo -->
+                    <div class="w-full max-w-md my-2">
+                        <div class="scanner-wrapper">
+                            <div id="demo-reader" style="width: 100%; min-height: 260px; background: #0f172a; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 13px;">
+                                <div class="text-center p-4">
+                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-2 opacity-50">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                        <polyline points="21 15 16 10 5 21"></polyline>
+                                    </svg>
+                                    <div>Cámara en espera. Haga clic en <strong>Encender Cámara</strong> o use los botones de simulación rápida.</div>
+                                </div>
+                            </div>
+                            <div id="demo-scanner-overlay" class="scanner-frame-overlay" style="display:none;">
+                                <div class="scanner-scanline"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Simulador de Escaneo con Carnets de Muestra -->
+                    <div class="w-full glass-card-subtle p-4 rounded-xl mt-4 text-left">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-slate-800">Pruebas Rápidas de Tokens QR (Haz Clic para Escanear):</span>
+                            <span class="chip chip-mint" style="font-size: 10px;">Sonido Web Audio API</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <button type="button" class="btn btn-subtle btn-sm text-xs w-full text-left flex flex-col items-start p-2" onclick="procesarScanDemo('RM-QR-A4A9B1C3D8E2F1')">
+                                <strong class="text-slate-800">A. Morales</strong>
+                                <span class="text-xs text-emerald-600 font-semibold">Puntual (07:05 AM)</span>
+                            </button>
+                            <button type="button" class="btn btn-subtle btn-sm text-xs w-full text-left flex flex-col items-start p-2" onclick="procesarScanDemo('RM-QR-B7E3C2D9F0A4E5')">
+                                <strong class="text-slate-800">V. Castillo</strong>
+                                <span class="text-xs text-emerald-600 font-semibold">Puntual (07:12 AM)</span>
+                            </button>
+                            <button type="button" class="btn btn-subtle btn-sm text-xs w-full text-left flex flex-col items-start p-2" onclick="procesarScanDemo('RM-QR-E8A2B6C4F1D9E3', true)">
+                                <strong class="text-slate-800">D. Gómez</strong>
+                                <span class="text-xs text-amber-600 font-semibold">Retraso (07:28 AM)</span>
+                            </button>
+                            <button type="button" class="btn btn-subtle btn-sm text-xs w-full text-left flex flex-col items-start p-2" onclick="procesarScanDemo('RM-QR-INVALIDO-999')">
+                                <strong class="text-slate-800">Token Falso</strong>
+                                <span class="text-xs text-rose-600 font-semibold">Alerta Error</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Historial en Vivo de la Sesión y Notificaciones -->
+                <div class="space-y-4">
+                    <div class="glass-card p-5">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-200/70 mb-3">
+                            <h3 class="text-sm font-bold text-slate-800">Pase de Lista de Hoy</h3>
+                            <span id="asistencia-contador-badge" class="chip chip-mint text-xs">2 Registros</span>
+                        </div>
+                        <div id="live-scan-log" class="space-y-2 max-h-72 overflow-y-auto">
+                            <!-- Ítems dinámicos -->
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta Informativa de Resiliencia -->
+                    <div class="glass-card p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="text-xs font-bold text-slate-800">Contingencia Local</h4>
+                            <span class="chip chip-blue" style="font-size: 10px;">IndexedDB / LocalStorage</span>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                            Si se corta la conexión, la asistencia no se detiene. Las marcas se firman criptográficamente en la memoria del navegador y se sincronizan al restablecerse el WiFi.
+                        </p>
+                        <button type="button" class="btn btn-mint btn-sm w-full text-xs" onclick="forzarSincronizacionOffline()">
+                            Sincronizar y Despachar Correos
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================================== -->
+        <!-- SECCIÓN 2: DASHBOARD ADMINISTRATIVO Y CHART.JS                       -->
+        <!-- ==================================================================== -->
+        <section id="sec-admin" class="hidden animate-fade-in" style="display:none;">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div>
+                    <span class="chip chip-blue text-xs mb-1">Módulo Administrativo</span>
+                    <h2 class="text-2xl font-extrabold text-slate-800">Estadísticas y Control del Plantel</h2>
+                    <p class="text-xs text-slate-600">Visualización de asistencia, puntualidad y notas de atención con Chart.js.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="btn btn-mint text-xs" onclick="cambiarSeccion('carnets')">
+                        Generar Carnets Masivos
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPIs -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="glass-card p-5 flex items-center gap-4">
+                    <div class="badge-icon badge-blue">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-xs font-semibold text-slate-500 uppercase">Matrícula Total</div>
+                        <div class="text-2xl font-extrabold text-slate-800">485</div>
+                        <div class="text-xs text-blue-600 font-medium">1ro a 5to Año</div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-5 flex items-center gap-4">
+                    <div class="badge-icon badge-mint">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-xs font-semibold text-slate-500 uppercase">Presentes Hoy</div>
+                        <div class="text-2xl font-extrabold text-emerald-600">448</div>
+                        <div class="text-xs text-slate-500 font-medium">92.4% Asistencia</div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-5 flex items-center gap-4">
+                    <div class="badge-icon badge-rose">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-xs font-semibold text-slate-500 uppercase">Inasistencias</div>
+                        <div class="text-2xl font-extrabold text-rose-500">37</div>
+                        <div class="text-xs text-slate-500 font-medium">Notificados por correo</div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-5 flex items-center gap-4">
+                    <div class="badge-icon badge-blue" style="background:#fef3c7; color:#d97706;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-xs font-semibold text-slate-500 uppercase">Notas de Atención</div>
+                        <div class="text-2xl font-extrabold text-amber-600">12</div>
+                        <div class="text-xs text-slate-500 font-medium">Seguimiento pedagógico</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráficos -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <div class="glass-card p-5">
+                    <h3 class="text-sm font-bold text-slate-800 mb-3">Distribución de Hoy</h3>
+                    <div style="height: 220px; position: relative;">
+                        <canvas id="chartDemo1"></canvas>
+                    </div>
+                </div>
+                <div class="glass-card p-5">
+                    <h3 class="text-sm font-bold text-slate-800 mb-3">Tendencia Semanal (%)</h3>
+                    <div style="height: 220px; position: relative;">
+                        <canvas id="chartDemo2"></canvas>
+                    </div>
+                </div>
+                <div class="glass-card p-5">
+                    <h3 class="text-sm font-bold text-slate-800 mb-3">Ausentismo por Nivel</h3>
+                    <div style="height: 220px; position: relative;">
+                        <canvas id="chartDemo3"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Estudiantes -->
+            <div class="glass-card p-5">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-200/70 mb-4">
+                    <h3 class="text-sm font-bold text-slate-800">Estudiantes Registrados (Muestra)</h3>
+                    <span class="chip chip-blue text-xs">Año Escolar 2025 - 2026</span>
+                </div>
+                <div class="table-container">
+                    <table class="glass-table">
+                        <thead>
+                            <tr>
+                                <th>Estudiante</th>
+                                <th>Cédula</th>
+                                <th>Año y Sección</th>
+                                <th>Correo Representante</th>
+                                <th>Token QR</th>
+                            </tr>
+                        </thead>
+                        <tbody id="demo-student-table-body">
+                            <!-- Poblado dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================================== -->
+        <!-- SECCIÓN 3: CARNETS ESTUDIANTILES (PLIEGO DE IMPRESIÓN / PDF)         -->
+        <!-- ==================================================================== -->
+        <section id="sec-carnets" class="hidden animate-fade-in" style="display:none;">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 no-print">
+                <div>
+                    <span class="chip chip-mint text-xs mb-1">Exportación Oficial</span>
+                    <h2 class="text-2xl font-extrabold text-slate-800">Generador de Carnets Estudiantiles</h2>
+                    <p class="text-xs text-slate-600">Diseño institucional de alta legibilidad con código QR criptográfico para impresión masiva.</p>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-mint text-xs" onclick="window.print()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                            <rect x="6" y="14" width="12" height="8"></rect>
+                        </svg>
+                        Imprimir Pliego / Exportar PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Grilla de Carnets -->
+            <div id="carnets-render-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <!-- Se inyectan carnets con logos oficiales y QR -->
+            </div>
+        </section>
+
+        <!-- ==================================================================== -->
+        <!-- SECCIÓN 4: ARQUITECTURA, CÓDIGO Y GUÍA DE INSTALACIÓN XAMPP          -->
+        <!-- ==================================================================== -->
+        <section id="sec-arquitectura" class="hidden animate-fade-in" style="display:none;">
+            <div class="mb-6">
+                <span class="chip chip-blue text-xs mb-1">Documentación para Desarrolladores</span>
+                <h2 class="text-2xl font-extrabold text-slate-800">Arquitectura de Software y Despliegue en XAMPP</h2>
+                <p class="text-xs text-slate-600">Estructura modular, conexión PDO segura, firewall de IPs y persistencia.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="glass-card p-5">
+                    <h3 class="text-sm font-bold text-slate-800 mb-2">Estructura de Directorios del Proyecto</h3>
+                    <div class="arch-code-box">
+asistencia_liceo/
+├── config/
+│   ├── config.php          <span style="color:#6ee7b7;"># Constantes globales, subredes autorizadas y SMTP</span>
+│   ├── conexion.php        <span style="color:#6ee7b7;"># Conexión PDO segura con UTF8mb4 y modo excepción</span>
+│   └── mailer.php          <span style="color:#6ee7b7;"># PHPMailer & plantillas HTML de notificación</span>
+├── includes/
+│   ├── auth.php            <span style="color:#93c5fd;"># Gestión de sesión, token CSRF y RBAC</span>
+│   ├── ip_guard.php        <span style="color:#f472b6;"># Middleware CIDR Anti-Fraude territorial</span>
+│   ├── header.php          <span style="color:#94a3b8;"># Cabecera reusable con Glassmorphism UI</span>
+│   └── footer.php          <span style="color:#94a3b8;"># Pie institucional & scripts</span>
+├── api/
+│   ├── procesar_asistencia.php    <span style="color:#38bdf8;"># Endpoint escaneo QR en vivo</span>
+│   ├── procesar_cierre_lista.php  <span style="color:#38bdf8;"># Cierre de lista e inasistencias</span>
+│   ├── guardar_nota_atencion.php  <span style="color:#38bdf8;"># Notas pedagógicas formativas</span>
+│   ├── sincronizar_offline.php    <span style="color:#38bdf8;"># Procesamiento diferido contingencia</span>
+│   ├── estudiantes_api.php        <span style="color:#38bdf8;"># CRUD Estudiantes</span>
+│   └── horarios_api.php           <span style="color:#38bdf8;"># CRUD Horarios</span>
+├── database/
+│   ├── schema.sql          <span style="color:#fde047;"># DDL MySQL InnoDB & Datos de prueba</span>
+│   └── seed.php            <span style="color:#fde047;"># Instalador web automático</span>
+├── assets/
+│   ├── css/glassmorphism.css
+│   ├── js/scanner.js
+│   ├── js/offline_manager.js
+│   └── img/logo_liceo.svg
+├── dashboard_admin.php     <span style="color:#60a5fa;"># Panel administrativo y analítica</span>
+├── dashboard_profesor.php  <span style="color:#4ade80;"># Panel del docente y cátedras</span>
+├── escanear.php            <span style="color:#4ade80;"># Visor QR de cámara</span>
+├── exportar_carnets.php    <span style="color:#c084fc;"># Pliego de impresión PDF</span>
+└── login.php               <span style="color:#fbbf24;"># Acceso institucional</span>
+                    </div>
+                </div>
+
+                <div class="glass-card p-5">
+                    <h3 class="text-sm font-bold text-slate-800 mb-2">Instrucciones de Despliegue en XAMPP</h3>
+                    <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
+                        <div class="glass-card-subtle p-3 rounded-xl border-l-4 border-emerald-500 bg-white/70">
+                            <strong class="text-slate-800 block mb-1">1. Ubicación en Apache:</strong>
+                            Copie los archivos de este repositorio en:
+                            <code class="block font-mono bg-slate-100 p-1 rounded mt-1">C:\xampp\htdocs\asistencia_liceo\</code>
+                        </div>
+
+                        <div class="glass-card-subtle p-3 rounded-xl border-l-4 border-blue-500 bg-white/70">
+                            <strong class="text-slate-800 block mb-1">2. Creación de la Base de Datos:</strong>
+                            Abra el navegador en <code class="font-mono">http://localhost/asistencia_liceo/database/seed.php</code> o importe <code class="font-mono">database/schema.sql</code> en <strong>phpMyAdmin</strong>.
+                        </div>
+
+                        <div class="glass-card-subtle p-3 rounded-xl border-l-4 border-amber-500 bg-white/70">
+                            <strong class="text-slate-800 block mb-1">3. Credenciales de Acceso Sembradas:</strong>
+                            <div class="mt-1 font-mono">
+                                Admin: <strong>admin@rossanamelidei.edu.ve</strong> / <strong>Admin123*</strong><br>
+                                Docente: <strong>carlos.gonzalez@rossanamelidei.edu.ve</strong> / <strong>Profesor123*</strong>
+                            </div>
+                        </div>
+
+                        <div class="glass-card-subtle p-3 rounded-xl border-l-4 border-rose-500 bg-white/70">
+                            <strong class="text-slate-800 block mb-1">4. Reglas de Red Anti-Fraude:</strong>
+                            La configuración en <code class="font-mono">config/config.php</code> incluye por defecto la subred local <code class="font-mono">192.168.1.0/24</code> y <code class="font-mono">127.0.0.1</code>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal: Cierre de Lista Demo -->
+    <div id="modal-cierre-lista-demo" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-card max-w-md w-full p-6 shadow-2xl relative bg-white/95 animate-fade-in text-center">
+            <div class="badge-icon badge-rose mx-auto mb-3">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 14 14"></polyline>
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-800 mb-1">Cierre Oficial de Lista de Asistencia</h3>
+            <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+                Esta acción registrará como <strong>AUSENTES</strong> a todos los estudiantes de la sección que no presentaron su credencial QR hoy, y enviará alertas de inasistencia por correo a sus representantes.
+            </p>
+            <div class="glass-card-subtle p-3 rounded-xl text-left text-xs mb-4">
+                <div class="flex justify-between py-1">
+                    <span class="text-slate-500">Cátedra:</span>
+                    <strong class="text-slate-800">Matemáticas y Cálculo (4to A)</strong>
+                </div>
+                <div class="flex justify-between py-1">
+                    <span class="text-slate-500">Alumnos Escaneados:</span>
+                    <strong class="text-emerald-600 font-bold" id="cierre-presentes-count">2</strong>
+                </div>
+                <div class="flex justify-between py-1">
+                    <span class="text-slate-500">Alumnos a marcar Inasistentes:</span>
+                    <strong class="text-rose-600 font-bold" id="cierre-ausentes-count">2</strong>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button type="button" class="btn btn-subtle w-full text-xs" onclick="document.getElementById('modal-cierre-lista-demo').classList.add('hidden')">
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-rose w-full text-xs" onclick="confirmarCierreListaDemo()">
+                    Confirmar Cierre de Lista
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Registrar Nota de Atención Demo -->
+    <div id="modal-nota-atencion-demo" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-card max-w-md w-full p-6 shadow-2xl relative bg-white/95 animate-fade-in">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
+                <h3 class="text-lg font-bold text-slate-800">Registrar Nota de Atención</h3>
+                <button type="button" class="text-slate-400 hover:text-slate-700" onclick="document.getElementById('modal-nota-atencion-demo').classList.add('hidden')">✕</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Estudiante</label>
+                <select id="nota-estudiante-select" class="form-control text-xs">
+                    <option value="Alejandro José Morales">Alejandro José Morales (V-32.410.821)</option>
+                    <option value="Valeria Sofía Castillo">Valeria Sofía Castillo (V-32.881.045)</option>
+                    <option value="Diego Armando Gómez">Diego Armando Gómez (V-32.551.487)</option>
+                    <option value="Daniela Victoria Reyes">Daniela Victoria Reyes (V-32.903.456)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Observación Pedagógica / Convivencia</label>
+                <textarea id="nota-motivo-text" class="form-control text-xs" rows="3" placeholder="Ej: Falta reiterada de la guía de estudio de Física..."></textarea>
+            </div>
+            <div class="flex justify-end gap-2 mt-4 pt-3 border-t border-slate-200">
+                <button type="button" class="btn btn-subtle text-xs" onclick="document.getElementById('modal-nota-atencion-demo').classList.add('hidden')">Cancelar</button>
+                <button type="button" class="btn btn-primary text-xs" onclick="guardarNotaDemo()">Guardar y Notificar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor de Toasts Flotantes -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Pie de Página Institucional -->
+    <footer class="mt-auto py-5 border-t border-white/50 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-3">
+            <div>
+                <strong>Liceo Bolivariano "Rossana Melidei"</strong> &bull; Sistema Integral de Asistencia v2.5
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="chip chip-blue" style="font-size: 11px;">PHP 8 + MySQL PDO</span>
+                <span class="chip chip-mint" style="font-size: 11px;">html5-qrcode</span>
+                <span class="chip chip-rose" style="font-size: 11px;">Anti-Fraude IP</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- LÓGICA JAVASCRIPT DEL PORTAL INTERACTIVO -->
+    <script>
+        // Datos de muestra interactivos
+        const estudiantesData = [
+            { id: 1, nombres: 'Alejandro José', apellidos: 'Morales Silva', cedula: 'V-32.410.821', ano: '4to Año', sec: 'A', correo: 'rep.morales@gmail.com', token: 'RM-QR-A4A9B1C3D8E2F1' },
+            { id: 2, nombres: 'Valeria Sofía', apellidos: 'Castillo Rivas', cedula: 'V-32.881.045', ano: '4to Año', sec: 'A', correo: 'rep.castillo@hotmail.com', token: 'RM-QR-B7E3C2D9F0A4E5' },
+            { id: 3, nombres: 'Gabriel Andrés', apellidos: 'Hernández Peña', cedula: 'V-31.954.120', ano: '5to Año', sec: 'B', correo: 'rep.hernandez@gmail.com', token: 'RM-QR-C1D8A5E7F3B6A9' },
+            { id: 4, nombres: 'Mariana Coromoto', apellidos: 'Pérez Salazar', cedula: 'V-33.102.394', ano: '3er Año', sec: 'A', correo: 'rep.perez@yahoo.com', token: 'RM-QR-D4F9E1A3C8B2D7' },
+            { id: 5, nombres: 'Diego Armando', apellidos: 'Gómez Torrealba', cedula: 'V-32.551.487', ano: '4to Año', sec: 'A', correo: 'rep.gomez@gmail.com', token: 'RM-QR-E8A2B6C4F1D9E3' },
+            { id: 6, nombres: 'Camila Isabella', apellidos: 'Blanco Delgado', cedula: 'V-34.009.612', ano: '1er Año', sec: 'C', correo: 'rep.blanco@gmail.com', token: 'RM-QR-F3C7E9D2A5B8F4' },
+            { id: 7, nombres: 'Samuel David', apellidos: 'Navarro Ortiz', cedula: 'V-33.642.189', ano: '2do Año', sec: 'B', correo: 'rep.navarro@outlook.com', token: 'RM-QR-A9D5B3F8E1C4A2' },
+            { id: 8, nombres: 'Daniela Victoria', apellidos: 'Reyes Fuentes', cedula: 'V-32.903.456', ano: '4to Año', sec: 'A', correo: 'rep.reyes@gmail.com', token: 'RM-QR-B2F4A7C9E3D6B8' }
+        ];
+
+        let registrosAsistencia = [
+            { token: 'RM-QR-A4A9B1C3D8E2F1', nombre: 'Alejandro Morales Silva', cedula: 'V-32.410.821', hora: '07:05:22 AM', estado: 'Presente', chip: 'chip-mint' },
+            { token: 'RM-QR-B7E3C2D9F0A4E5', nombre: 'Valeria Castillo Rivas', cedula: 'V-32.881.045', hora: '07:12:05 AM', estado: 'Presente', chip: 'chip-mint' }
+        ];
+
+        let colaOffline = JSON.parse(localStorage.getItem('liceo_demo_offline_queue') || '[]');
+        let ipAutorizada = true;
+        let modoOffline = false;
+        let audioCtx = null;
+        let html5QrScanner = null;
+
+        // Web Audio API sintetizado
+        function playChime(freq1, freq2) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.frequency.setValueAtTime(freq1, audioCtx.currentTime);
+                if (freq2) osc.frequency.setValueAtTime(freq2, audioCtx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.35);
+            } catch (e) {}
+        }
+
+        function playErrorSound() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.35);
+            } catch (e) {}
+        }
+
+        // Navegación entre secciones
+        function cambiarSeccion(seccionId) {
+            document.querySelectorAll('section').forEach(s => {
+                s.style.display = 'none';
+                s.classList.add('hidden');
+            });
+            document.querySelectorAll('.nav-pill').forEach(btn => btn.classList.remove('active'));
+
+            const sec = document.getElementById('sec-' + seccionId);
+            if (sec) {
+                sec.style.display = 'block';
+                sec.classList.remove('hidden');
+            }
+
+            event?.currentTarget?.classList.add('active');
+
+            if (seccionId === 'admin') {
+                setTimeout(initDemoCharts, 100);
+            }
+        }
+
+        // Simulación de Escaneo
+        function procesarScanDemo(token, forzarRetraso = false) {
+            // 1. Validar Anti-Fraude IP
+            if (!ipAutorizada) {
+                playErrorSound();
+                showToast('⛔ [BLOQUEO ANTI-FRAUDE]: Dispositivo fuera de la subred del Liceo Rossana Melidei (IP no autorizada).', 'rose');
+                return;
+            }
+
+            // 2. Buscar estudiante
+            const estudiante = estudiantesData.find(e => e.token === token);
+            if (!estudiante) {
+                playErrorSound();
+                showToast('❌ [QR INVÁLIDO]: Credencial no reconocida o no matriculada en el sistema.', 'rose');
+                return;
+            }
+
+            // 3. Verificar duplicado en la sesión
+            const yaEscaneado = registrosAsistencia.some(r => r.token === token);
+            if (yaEscaneado) {
+                playErrorSound();
+                showToast(`⚠️ [DUPLICADO]: ${estudiante.nombres} ${estudiante.apellidos} ya registró su asistencia hoy.`, 'amber');
+                return;
+            }
+
+            const estado = forzarRetraso ? 'Retraso' : 'Presente';
+            const chipClass = forzarRetraso ? 'chip-amber' : 'chip-mint';
+            const hora = new Date().toLocaleTimeString();
+
+            // 4. Si está en modo offline, encolar en LocalStorage
+            if (modoOffline) {
+                playChime(587, 880);
+                colaOffline.push({
+                    token: token,
+                    nombre: `${estudiante.nombres} ${estudiante.apellidos}`,
+                    hora: hora,
+                    estado: estado,
+                    correo: estudiante.correo
+                });
+                localStorage.setItem('liceo_demo_offline_queue', JSON.stringify(colaOffline));
+                actualizarColaOfflineUI();
+                showToast(`📦 [OFFLINE]: Asistencia de ${estudiante.nombres} guardada en contingencia local. Se enviará al volver la red.`, 'amber');
+                return;
+            }
+
+            // 5. Modo Online: Registrar de inmediato y despachar correo
+            playChime(523, 784);
+            registrosAsistencia.unshift({
+                token: token,
+                nombre: `${estudiante.nombres} ${estudiante.apellidos}`,
+                cedula: estudiante.cedula,
+                hora: hora,
+                estado: estado,
+                chip: chipClass
+            });
+
+            actualizarListaAsistenciaUI();
+            showToast(`✓ [ASISTENCIA]: ${estudiante.nombres} (${estado}). Correo despachado a: ${estudiante.correo}`, 'mint');
+        }
+
+        function actualizarListaAsistenciaUI() {
+            const container = document.getElementById('live-scan-log');
+            const badge = document.getElementById('asistencia-contador-badge');
+            if (!container) return;
+
+            if (badge) badge.textContent = `${registrosAsistencia.length} Registros`;
+
+            container.innerHTML = registrosAsistencia.map(r => `
+                <div class="glass-card-subtle p-3 rounded-xl border border-white/60 flex items-center justify-between">
+                    <div>
+                        <div class="text-xs font-bold text-slate-800">${r.nombre}</div>
+                        <div class="text-xs text-slate-400 font-mono">${r.cedula || 'V-32.xxx.xxx'} &bull; ${r.hora}</div>
+                    </div>
+                    <div class="text-right">
+                        <span class="chip ${r.chip} text-xs">${r.estado}</span>
+                        <div class="text-xs text-emerald-600 font-semibold mt-1">✓ Email enviado</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Alternadores de Simulación
+        function toggleIPSimulada() {
+            ipAutorizada = !ipAutorizada;
+            const textEl = document.getElementById('current-ip-text');
+            const badgeEl = document.getElementById('global-ip-badge');
+            if (ipAutorizada) {
+                textEl.textContent = '192.168.1.45';
+                badgeEl.className = 'chip chip-blue demo-switch-badge';
+                badgeEl.innerHTML = `🌐 IP: <strong id="current-ip-text">192.168.1.45</strong> (Red Liceo Autorizada)`;
+                showToast('🟢 IP autorizada restaurada: Red WiFi Liceo Rossana Melidei.', 'blue');
+            } else {
+                badgeEl.className = 'chip chip-rose demo-switch-badge';
+                badgeEl.innerHTML = `⛔ IP: <strong id="current-ip-text">186.92.10.99</strong> (IP Externa Bloqueada)`;
+                showToast('🔴 Simulación activa: Dispositivo en IP externa no autorizada. El escáner se bloqueará.', 'rose');
+            }
+        }
+
+        function toggleOfflineSimulado() {
+            modoOffline = !modoOffline;
+            const badgeEl = document.getElementById('global-network-badge');
+            if (modoOffline) {
+                badgeEl.className = 'chip chip-amber demo-switch-badge';
+                badgeEl.innerHTML = `🟠 Estado: <strong>Modo Offline (Contingencia)</strong>`;
+                showToast('⚠️ Modo Offline activado. Los escaneos se guardarán en LocalStorage.', 'amber');
+            } else {
+                badgeEl.className = 'chip chip-mint demo-switch-badge';
+                badgeEl.innerHTML = `🟢 Estado: <strong>En Línea</strong>`;
+                showToast('🌐 Modo En Línea restaurado.', 'mint');
+                forzarSincronizacionOffline();
+            }
+        }
+
+        function actualizarColaOfflineUI() {
+            const count = colaOffline.length;
+            const pill = document.getElementById('offline-counter-pill');
+            if (pill) {
+                pill.textContent = `${count} pendientes`;
+                pill.className = count > 0 ? 'chip chip-amber font-mono font-bold' : 'chip chip-mint font-mono font-bold';
+            }
+        }
+
+        function forzarSincronizacionOffline() {
+            if (colaOffline.length === 0) {
+                showToast('No hay asistencias pendientes en la cola local de contingencia.', 'blue');
+                return;
+            }
+
+            const total = colaOffline.length;
+            colaOffline.forEach(item => {
+                registrosAsistencia.unshift({
+                    token: item.token,
+                    nombre: item.nombre,
+                    cedula: 'V-32.xxx.xxx',
+                    hora: item.hora + ' (Diferido)',
+                    estado: item.estado,
+                    chip: item.estado === 'Presente' ? 'chip-mint' : 'chip-amber'
+                });
+            });
+
+            colaOffline = [];
+            localStorage.setItem('liceo_demo_offline_queue', '[]');
+            actualizarColaOfflineUI();
+            actualizarListaAsistenciaUI();
+            playChime(659, 987);
+            showToast(`✓ Sincronización exitosa: ${total} asistencias offline procesadas y correos despachados.`, 'mint');
+        }
+
+        // Cámara Real HTML5-QRCode
+        async function iniciarCamaraDemo() {
+            if (!window.Html5Qrcode) {
+                showToast('Librería de cámara cargando...', 'amber');
+                return;
+            }
+            try {
+                html5QrScanner = new Html5Qrcode("demo-reader");
+                const cameras = await Html5Qrcode.getCameras();
+                if (!cameras || cameras.length === 0) {
+                    showToast('No se encontró cámara disponible. Use los botones de simulación.', 'amber');
+                    return;
+                }
+                document.getElementById('demo-scanner-overlay').style.display = 'flex';
+                document.getElementById('btn-demo-start-cam').style.display = 'none';
+                document.getElementById('demo-stop-cam').style.display = 'inline-flex';
+
+                await html5QrScanner.start(
+                    cameras[0].id,
+                    { fps: 10, qrbox: 240 },
+                    (decoded) => procesarScanDemo(decoded.trim()),
+                    () => {}
+                );
+            } catch (e) {
+                showToast('Permiso de cámara no concedido o cámara ocupada.', 'rose');
+            }
+        }
+
+        async function detenerCamaraDemo() {
+            if (html5QrScanner) {
+                await html5QrScanner.stop();
+                document.getElementById('demo-scanner-overlay').style.display = 'none';
+                document.getElementById('btn-demo-start-cam').style.display = 'inline-flex';
+                document.getElementById('demo-stop-cam').style.display = 'none';
+            }
+        }
+
+        // Cierre de Lista Modal
+        function abrirModalCierreLista() {
+            const ausentes = estudiantesData.length - registrosAsistencia.length;
+            document.getElementById('cierre-presentes-count').textContent = registrosAsistencia.length;
+            document.getElementById('cierre-ausentes-count').textContent = Math.max(0, ausentes);
+            document.getElementById('modal-cierre-lista-demo').classList.remove('hidden');
+        }
+
+        function confirmarCierreListaDemo() {
+            document.getElementById('modal-cierre-lista-demo').classList.add('hidden');
+            playChime(440, 330);
+            showToast('✓ Cierre de lista completado. Se despacharon las alertas de inasistencia a los representantes.', 'rose');
+        }
+
+        // Notas de Atención Modal
+        function abrirModalNotaAtencion() {
+            document.getElementById('modal-nota-atencion-demo').classList.remove('hidden');
+        }
+
+        function guardarNotaDemo() {
+            const est = document.getElementById('nota-estudiante-select').value;
+            const mot = document.getElementById('nota-motivo-text').value;
+            if (!mot.trim()) {
+                alert('Ingrese el motivo formativo.');
+                return;
+            }
+            document.getElementById('modal-nota-atencion-demo').classList.add('hidden');
+            document.getElementById('nota-motivo-text').value = '';
+            showToast(`✓ Nota de atención registrada para ${est}. Notificación despachada al representante por correo.`, 'blue');
+        }
+
+        // Notificaciones Toast
+        function showToast(msg, type = 'blue') {
+            const container = document.getElementById('toast-container');
+            const t = document.createElement('div');
+            const borderColor = type === 'mint' ? 'border-emerald-500' : (type === 'rose' ? 'border-rose-500' : (type === 'amber' ? 'border-amber-500' : 'border-blue-500'));
+            t.className = `toast-card border-l-4 ${borderColor}`;
+            t.innerHTML = `<div class="text-xs font-semibold text-slate-800">${msg}</div>`;
+            container.appendChild(t);
+            setTimeout(() => t.remove(), 4500);
+        }
+
+        // Renderizado de Carnets Estudiantiles
+        function renderCarnets() {
+            const grid = document.getElementById('carnets-render-grid');
+            if (!grid) return;
+
+            grid.innerHTML = estudiantesData.map(e => `
+                <div class="carnet-card">
+                    <div class="carnet-header">
+                        <h4>República Bolivariana de Venezuela &bull; MPPE</h4>
+                        <h3>LICEO BOLIVARIANO "ROSSANA MELIDEI"</h3>
+                    </div>
+                    <div class="carnet-body">
+                        <img src="assets/img/avatars/default_student.svg" alt="Foto" class="carnet-photo">
+                        <div class="carnet-info">
+                            <div class="carnet-name">${e.apellidos}<br><span style="color:#2563eb;">${e.nombres}</span></div>
+                            <div class="carnet-meta">C.I.: <strong>${e.cedula}</strong></div>
+                            <div class="carnet-meta">${e.ano} &bull; Sección "<strong>${e.sec}</strong>"</div>
+                            <div class="carnet-meta">Periodo: 2025 - 2026</div>
+                        </div>
+                        <div class="carnet-qr-box">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(e.token)}" alt="QR">
+                        </div>
+                    </div>
+                    <div class="carnet-footer">
+                        <span class="font-mono text-xs text-slate-500">${e.token}</span>
+                        <span class="text-xs text-slate-500">DEA OD01540107</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Renderizado de Tabla de Estudiantes en Admin
+        function renderAdminTable() {
+            const tbody = document.getElementById('demo-student-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = estudiantesData.map(e => `
+                <tr>
+                    <td>
+                        <div class="font-bold text-slate-800">${e.apellidos}, ${e.nombres}</div>
+                    </td>
+                    <td><span class="chip chip-blue font-mono">${e.cedula}</span></td>
+                    <td>${e.ano} "${e.sec}"</td>
+                    <td>${e.correo}</td>
+                    <td><span class="font-mono text-xs bg-white/70 px-2 py-1 rounded border">${e.token}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        // Inicializar Gráficos Demo
+        let chartsInitialized = false;
+        function initDemoCharts() {
+            if (chartsInitialized || !window.Chart) return;
+            chartsInitialized = true;
+
+            const c1 = document.getElementById('chartDemo1');
+            if (c1) {
+                new Chart(c1, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Presentes', 'Retardos', 'Inasistencias'],
+                        datasets: [{
+                            data: [420, 28, 37],
+                            backgroundColor: ['#34d399', '#fbbf24', '#f87171'],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
+                });
+            }
+
+            const c2 = document.getElementById('chartDemo2');
+            if (c2) {
+                new Chart(c2, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'],
+                        datasets: [
+                            { label: 'Presentes %', data: [94, 91, 96, 89, 93], backgroundColor: 'rgba(96, 165, 250, 0.85)', borderRadius: 6 },
+                            { label: 'Ausentes %', data: [6, 9, 4, 11, 7], backgroundColor: 'rgba(251, 113, 133, 0.85)', borderRadius: 6 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { max: 100 } } }
+                });
+            }
+
+            const c3 = document.getElementById('chartDemo3');
+            if (c3) {
+                new Chart(c3, {
+                    type: 'bar',
+                    data: {
+                        labels: ['1ro', '2do', '3ro', '4to', '5to'],
+                        datasets: [{
+                            label: 'Ausentismo %',
+                            data: [4.2, 5.8, 8.1, 6.4, 9.7],
+                            backgroundColor: ['#a7f3d0', '#bfdbfe', '#fde68a', '#fbcfe8', '#fecdd3'],
+                            borderRadius: 6
+                        }]
+                    },
+                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            actualizarListaAsistenciaUI();
+            actualizarColaOfflineUI();
+            renderCarnets();
+            renderAdminTable();
+        });
+    </script>
+</body>
+</html>
