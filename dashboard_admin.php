@@ -79,40 +79,42 @@ require_once __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Encabezado de Sección y Acciones Rápidas -->
-<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-    <div>
-        <div class="flex items-center gap-2 mb-1">
-            <span class="chip chip-blue">Dirección del Plantel</span>
-            <span class="text-xs text-slate-500 font-mono"><?= date('d/m/Y') ?></span>
+<div class="glass-card p-3 sm:p-5 mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="chip chip-blue text-[11px]">Dirección del Plantel</span>
+                <span class="text-xs text-slate-500 font-mono"><?= date('d/m/Y') ?></span>
+            </div>
+            <h2 class="text-lg sm:text-xl md:text-2xl font-extrabold text-slate-800 leading-tight">Panel Integral de Control Académico</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Monitoreo territorial de puntualidad, ausentismo y expedición de credenciales.</p>
         </div>
-        <h2 class="text-2xl font-extrabold text-slate-800">Panel Integral de Control Académico</h2>
-        <p class="text-xs text-slate-600">Monitoreo territorial de puntualidad, ausentismo y expedición de credenciales.</p>
-    </div>
-    <div class="flex items-center gap-3">
-        <a href="exportar_carnets.php" class="btn btn-mint text-xs">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
-            Imprimir Carnets (PDF)
-        </a>
-        <button type="button" class="btn btn-primary text-xs" onclick="document.getElementById('modal-nuevo-estudiante').classList.remove('hidden')">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Nuevo Estudiante
-        </button>
+        <div class="grid grid-cols-2 sm:flex items-center gap-2">
+            <a href="exportar_carnets.php" class="btn btn-mint btn-sm text-xs w-full sm:w-auto">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                Imprimir Carnets
+            </a>
+            <button type="button" class="btn btn-primary btn-sm text-xs w-full sm:w-auto" onclick="document.getElementById('modal-nuevo-estudiante').classList.remove('hidden')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Nuevo Estudiante
+            </button>
+        </div>
     </div>
 </div>
 
-<!-- Tarjetas KPI Estadísticas -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <div class="glass-card p-5 glass-card-hover flex items-center gap-4">
+<!-- Tarjetas KPI Estadísticas (2x2 en móviles, 4 cols en PC) -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5 kpi-grid-mobile">
+    <div class="glass-card p-3 sm:p-4 glass-card-hover flex items-center gap-3 kpi-card-mobile">
         <div class="badge-icon badge-blue">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -120,43 +122,43 @@ require_once __DIR__ . '/includes/header.php';
             </svg>
         </div>
         <div>
-            <div class="text-xs font-semibold text-slate-500 uppercase">Matrícula Activa</div>
-            <div class="text-2xl font-extrabold text-slate-800"><?= $totalEstudiantes ?></div>
-            <div class="text-xs text-blue-600 font-medium">Estudiantes registrados</div>
+            <div class="text-[11px] font-semibold text-slate-500 uppercase">Matrícula Activa</div>
+            <div class="text-xl sm:text-2xl font-extrabold text-slate-800"><?= $totalEstudiantes ?></div>
+            <div class="text-[10px] text-blue-600 font-medium">Estudiantes registrados</div>
         </div>
     </div>
 
-    <div class="glass-card p-5 glass-card-hover flex items-center gap-4">
+    <div class="glass-card p-3 sm:p-4 glass-card-hover flex items-center gap-3 kpi-card-mobile">
         <div class="badge-icon badge-mint">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
         </div>
         <div>
-            <div class="text-xs font-semibold text-slate-500 uppercase">Asistencia Hoy</div>
-            <div class="text-2xl font-extrabold text-emerald-600"><?= $presentesHoy ?></div>
-            <div class="text-xs text-slate-500 font-medium">+<?= $retardosHoy ?> con retardo</div>
+            <div class="text-[11px] font-semibold text-slate-500 uppercase">Asistencia Hoy</div>
+            <div class="text-xl sm:text-2xl font-extrabold text-emerald-600"><?= $presentesHoy ?></div>
+            <div class="text-[10px] text-slate-500 font-medium">+<?= $retardosHoy ?> con retardo</div>
         </div>
     </div>
 
-    <div class="glass-card p-5 glass-card-hover flex items-center gap-4">
+    <div class="glass-card p-3 sm:p-4 glass-card-hover flex items-center gap-3 kpi-card-mobile">
         <div class="badge-icon badge-rose">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="15" y1="9" x2="9" y2="15"></line>
                 <line x1="9" y1="9" x2="15" y2="15"></line>
             </svg>
         </div>
         <div>
-            <div class="text-xs font-semibold text-slate-500 uppercase">Inasistencias Hoy</div>
-            <div class="text-2xl font-extrabold text-rose-500"><?= $ausentesHoy ?></div>
-            <div class="text-xs text-slate-500 font-medium">Notificados a representantes</div>
+            <div class="text-[11px] font-semibold text-slate-500 uppercase">Inasistencias Hoy</div>
+            <div class="text-xl sm:text-2xl font-extrabold text-rose-500"><?= $ausentesHoy ?></div>
+            <div class="text-[10px] text-slate-500 font-medium">Alertas Enviadas</div>
         </div>
     </div>
 
-    <div class="glass-card p-5 glass-card-hover flex items-center gap-4">
+    <div class="glass-card p-3 sm:p-4 glass-card-hover flex items-center gap-3 kpi-card-mobile">
         <div class="badge-icon badge-blue" style="background:#fef3c7; color:#d97706;">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                 <polyline points="14 2 14 8 20 8"></polyline>
                 <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -164,20 +166,52 @@ require_once __DIR__ . '/includes/header.php';
             </svg>
         </div>
         <div>
-            <div class="text-xs font-semibold text-slate-500 uppercase">Notas de Atención</div>
-            <div class="text-2xl font-extrabold text-amber-600"><?= $totalNotas ?></div>
-            <div class="text-xs text-slate-500 font-medium">Observaciones de cátedra</div>
+            <div class="text-[11px] font-semibold text-slate-500 uppercase">Notas de Atención</div>
+            <div class="text-xl sm:text-2xl font-extrabold text-amber-600"><?= $totalNotas ?></div>
+            <div class="text-[10px] text-slate-500 font-medium">Observaciones de cátedra</div>
         </div>
     </div>
 </div>
 
 <!-- Gráficos Analíticos Chart.js -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
     <!-- Gráfica 1: Distribución Asistencia Hoy -->
-    <div class="glass-card p-5 flex flex-col">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-bold text-slate-800">Distribución de Hoy</h3>
-            <span class="chip chip-mint text-xs"><?= $tasaPuntualidad ?>% Puntual</span>
+    <div class="glass-card p-4 flex flex-col">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs sm:text-sm font-bold text-slate-800">Distribución de Hoy</h3>
+            <span class="chip chip-mint text-[11px]"><?= $tasaPuntualidad ?>% Puntual</span>
+        </div>
+        <div style="position: relative; height: 200px; width: 100%;">
+            <canvas id="chartAttendanceToday" 
+                    data-presentes="<?= $presentesHoy ?>" 
+                    data-retardos="<?= $retardosHoy ?>" 
+                    data-ausentes="<?= $ausentesHoy ?>">
+            </canvas>
+        </div>
+    </div>
+
+    <!-- Gráfica 2: Tendencia Semanal -->
+    <div class="glass-card p-4 flex flex-col">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs sm:text-sm font-bold text-slate-800">Tendencia Semanal (%)</h3>
+            <span class="chip chip-blue text-[11px]">Lunes - Viernes</span>
+        </div>
+        <div style="position: relative; height: 200px; width: 100%;">
+            <canvas id="chartWeeklyTrend"></canvas>
+        </div>
+    </div>
+
+    <!-- Gráfica 3: Ausentismo por Años de Estudio -->
+    <div class="glass-card p-4 flex flex-col">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs sm:text-sm font-bold text-slate-800">Ausentismo por Nivel</h3>
+            <span class="chip chip-rose text-[11px]">1ro a 5to Año</span>
+        </div>
+        <div style="position: relative; height: 200px; width: 100%;">
+            <canvas id="chartAbsenteeismLevels"></canvas>
+        </div>
+    </div>
+</div>
         </div>
         <div style="position: relative; height: 230px; width: 100%;">
             <canvas id="chartAttendanceToday" 
