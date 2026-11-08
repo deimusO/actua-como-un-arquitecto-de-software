@@ -4,5 +4,18 @@
   "createdAt": "2026-11-08T03:20:26.276Z",
   "filename": "31ed0d98-cef7-40ec-b010-266e0ece9395.json",
   "geminiStarted": false,
-  "messages": []
+  "messages": [
+    {
+      "id": "ea7c067f-77fd-44bb-94ef-2676dfa6b1b7",
+      "role": "user",
+      "content": "Actúa como un arquitecto de software senior y experto en desarrollo web seguro con PHP 8, MySQL (PDO), HTML5, CSS3 y JavaScript. Necesito que desarrolles la estructura completa, scripts de conexión, lógica de seguridad y código fuente para un Sistema Integral de Control de Asistencia Escolar para el \"Liceo Bolivariano Rossana Melidei\", diseñado para ejecutarse localmente en XAMPP con capacidad de sincronización y contingencia.\n\nRequisitos técnicos, de seguridad y funcionales obligatorios:\n\n1. Estructura de Base de Datos MySQL:\n- Tabla `usuarios`: id, nombre, email, password (hash), rol ('admin', 'profesor'), estado.\n- Tabla `estudiantes`: id, nombres, apellidos, cedula, ano_instruccion, seccion, correo_representante, token_qr, foto.\n- Tabla `horarios`: id, profesor_id, materia, ano_instruccion, seccion, dia_semana, hora_entrada, hora_salida.\n- Tabla `asistencia`: id, estudiante_id, profesor_id, materia, fecha, hora_escaneo, estado ('Presente', 'Retraso', 'Ausente').\n- Tabla `notas_atencion`: id, estudiante_id, profesor_id, motivo, fecha.\n\n2. Seguridad y Restricción por IP (Anti-Fraude):\n- Middleware en PHP ($_SERVER['REMOTE_ADDR']) que restrinja el módulo de escaneo a la red local del liceo (subred configurable) o IPs autorizadas para administración externa. Si la IP no está autorizada, bloquea el registro de asistencia.\n\n3. Resiliencia y Contingencia (Modo Offline):\n- Integrar almacenamiento local (LocalStorage / IndexedDB) en el escáner JS del profesor para guardar marcas de asistencia si se pierde la conexión a Internet, permitiendo sincronización automática masiva y envío diferido de correos al restablecerse la red.\n\n4. Diseño UI/UX (Glassmorphism & Colores Pasteles):\n- Interfaz moderna con efectos de cristal (backdrop-filter: blur, bordes sutiles semitransparentes), fondo en gris claro (#f4f6f9) y detalles en azul pastel y verde menta. Totalmente responsivo para teléfonos móviles.\n\n5. Módulos y Roles de Usuario:\n- Rol Administrador:\n  * Gestión CRUD de estudiantes y horarios.\n  * Generador de carnets estudiantiles (con logo, datos legibles y QR dinámico) con exportación masiva a PDF (formato listo para imprimir por hojas).\n  * Dashboard con gráficos estadísticos de ausentismo y puntualidad (usando Chart.js).\n- Rol Profesor:\n  * Selección de materia/clase según horario.\n  * Escáner QR en vivo mediante 'html5-qrcode'.\n  * Notificación automática por correo al representante vía PHPMailer al escanear (asistencia).\n  * Función de \"Cierre de Lista\" para notificar inasistencias automáticas a alumnos no escaneados.\n  * RESTRICCIÓN: El profesor NO puede eliminar asistencias grabadas. Solo puede registrar \"Notas de Atención\" (con notificación instantánea por correo al representante).\n\n6. Requisitos de Código:\n- Conexión PDO segura, sanitización contra Inyección SQL y XSS, estructura modular (conexion.php, login.php, dashboard_admin.php, dashboard_profesor.php, escanear.php, procesar_asistencia.php, exportar_carnets.php).\n\nGenera la arquitectura de carpetas, base de datos SQL y el código modular completo.",
+      "status": "pending",
+      "model": "gemini-3.8-flash-high",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-08T03:22:57.874Z",
+      "sender": "ios",
+      "is_cancelled": false
+    }
+  ]
 }
