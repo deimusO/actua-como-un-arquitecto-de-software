@@ -114,36 +114,38 @@ require_once __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Encabezado y Selector de Clase -->
-<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-    <div>
-        <div class="flex items-center gap-2 mb-1">
-            <span class="chip chip-mint">Docente Titular</span>
-            <span class="text-xs text-slate-500 font-medium">Jornada de hoy: <strong><?= $diaHoy ?> <?= date('d/m/Y') ?></strong></span>
+<div class="glass-card p-3 sm:p-5 mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="chip chip-mint text-[11px]">Docente Titular</span>
+                <span class="text-xs text-slate-500 font-medium">Jornada de hoy: <strong><?= $diaHoy ?> <?= date('d/m/Y') ?></strong></span>
+            </div>
+            <h2 class="text-lg sm:text-xl md:text-2xl font-extrabold text-slate-800 leading-tight">Control de Aula y Registro de Asistencia</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Seleccione su cátedra para escanear credenciales QR y gestionar la sesión.</p>
         </div>
-        <h2 class="text-2xl font-extrabold text-slate-800">Control de Aula y Registro de Asistencia</h2>
-        <p class="text-xs text-slate-600">Seleccione su clase para escanear credenciales QR y gestionar la sesión.</p>
+        
+        <?php if ($horarioActivo): ?>
+            <div class="grid grid-cols-2 sm:flex items-center gap-2">
+                <a href="escanear.php?horario_id=<?= $horarioActivo['id'] ?>" class="btn btn-mint btn-sm text-xs w-full sm:w-auto">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    Escanear QR
+                </a>
+                <button type="button" class="btn btn-rose btn-sm text-xs w-full sm:w-auto" onclick="ejecutarCierreLista(<?= $horarioActivo['id'] ?>)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 14 14"></polyline>
+                    </svg>
+                    Cierre Lista
+                </button>
+            </div>
+        <?php endif; ?>
     </div>
-    
-    <?php if ($horarioActivo): ?>
-        <div class="flex items-center gap-2">
-            <a href="escanear.php?horario_id=<?= $horarioActivo['id'] ?>" class="btn btn-mint text-xs">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="7" height="7"></rect>
-                    <rect x="14" y="3" width="7" height="7"></rect>
-                    <rect x="14" y="14" width="7" height="7"></rect>
-                    <rect x="3" y="14" width="7" height="7"></rect>
-                </svg>
-                Abrir Escáner QR en Vivo
-            </a>
-            <button type="button" class="btn btn-rose text-xs" onclick="ejecutarCierreLista(<?= $horarioActivo['id'] ?>)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 14 14"></polyline>
-                </svg>
-                Cierre de Lista
-            </button>
-        </div>
-    <?php endif; ?>
 </div>
 
 <!-- Selector de Bloques Horarios del Docente -->

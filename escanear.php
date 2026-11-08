@@ -55,32 +55,34 @@ require_once __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Encabezado del Módulo de Escaneo -->
-<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-    <div>
-        <div class="flex items-center gap-2 mb-1">
-            <span class="chip chip-mint">Escáner Activo</span>
-            <span class="chip chip-blue font-mono text-xs">IP: <?= htmlspecialchars($clientIp) ?> (Verificada)</span>
+<div class="glass-card p-3 sm:p-5 mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="chip chip-mint text-[11px]">Escáner Activo</span>
+                <span class="chip chip-blue font-mono text-[10px]">IP: <?= htmlspecialchars($clientIp) ?></span>
+            </div>
+            <h2 class="text-lg sm:text-xl md:text-2xl font-extrabold text-slate-800 leading-tight">Captura de Asistencia Escolar</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Apunta la credencial QR del estudiante frente al lente de la cámara.</p>
         </div>
-        <h2 class="text-2xl font-extrabold text-slate-800">Captura de Asistencia Escolar</h2>
-        <p class="text-xs text-slate-600">Apunta el carnet del estudiante frente al lente de la cámara institucional.</p>
-    </div>
-    <div class="flex items-center gap-2">
-        <a href="dashboard_profesor.php?horario_id=<?= $horarioId ?>" class="btn btn-subtle text-xs">
-            Volver al Panel
-        </a>
+        <div class="flex items-center gap-2">
+            <a href="dashboard_profesor.php?horario_id=<?= $horarioId ?>" class="btn btn-subtle btn-sm text-xs w-full sm:w-auto">
+                ← Volver al Panel
+            </a>
+        </div>
     </div>
 </div>
 
 <!-- Selector de Clase Activa y Controles del Escáner -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6">
     <!-- Columna Izquierda: Visor del Escáner de Cámara -->
-    <div class="lg:col-span-2 glass-card p-5 flex flex-col items-center">
+    <div class="lg:col-span-7 glass-card p-4 flex flex-col items-center">
         <!-- Barra de Estado de la Cátedra -->
-        <div class="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200/70 mb-4">
-            <div id="clase-activa-banner">
+        <div class="w-full flex items-center justify-between pb-2.5 border-b border-slate-200/70 mb-3">
+            <div id="clase-activa-banner" class="truncate pr-2">
                 <?php if ($horarioActivo): ?>
-                    <span class="chip chip-blue text-xs mb-1">Cátedra Seleccionada</span>
-                    <h3 class="text-sm font-bold text-slate-800">
+                    <span class="chip chip-blue text-[10px] mb-0.5">Cátedra Activa</span>
+                    <h3 class="text-xs sm:text-sm font-bold text-slate-800 truncate">
                         <?= htmlspecialchars($horarioActivo['materia']) ?> (<?= htmlspecialchars($horarioActivo['ano_instruccion']) ?> "<?= htmlspecialchars($horarioActivo['seccion']) ?>")
                     </h3>
                 <?php else: ?>
@@ -88,29 +90,25 @@ require_once __DIR__ . '/includes/header.php';
                 <?php endif; ?>
             </div>
             
-            <div class="flex items-center gap-2">
-                <button type="button" id="btn-start-scanner" class="btn btn-primary text-xs" onclick="window.liceoQRScanner.startCamera()">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polygon points="23 7 16 12 23 17 23 7"></polygon>
-                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-                    </svg>
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <button type="button" id="btn-start-scanner" class="btn btn-primary btn-sm text-xs" onclick="window.liceoQRScanner.startCamera()">
                     Encender Cámara
                 </button>
-                <button type="button" id="btn-stop-scanner" class="btn btn-rose text-xs" style="display:none;" onclick="window.liceoQRScanner.stopCamera()">
+                <button type="button" id="btn-stop-scanner" class="btn btn-rose btn-sm text-xs" style="display:none;" onclick="window.liceoQRScanner.stopCamera()">
                     Apagar Cámara
                 </button>
             </div>
         </div>
 
         <!-- Visor del Lector HTML5-QRCode -->
-        <div class="w-full max-w-md my-2">
+        <div class="w-full max-w-sm my-1">
             <div class="scanner-wrapper">
                 <div id="reader"></div>
                 <div id="scanner-overlay" class="scanner-frame-overlay" style="display:none;">
                     <div class="scanner-scanline"></div>
                 </div>
             </div>
-            <div id="scanner-feedback-badge" class="text-center mt-3" style="display:none;"></div>
+            <div id="scanner-feedback-badge" class="text-center mt-2.5" style="display:none;"></div>
         </div>
 
         <!-- Alternativa: Cargar archivo de imagen QR -->
