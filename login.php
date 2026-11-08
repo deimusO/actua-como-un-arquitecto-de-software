@@ -63,7 +63,7 @@ $csrfToken = getCsrfToken();
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Acceso al Sistema - <?= htmlspecialchars(INSTITUCION_NOMBRE) ?></title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -71,19 +71,19 @@ $csrfToken = getCsrfToken();
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/glassmorphism.css">
 </head>
-<body class="bg-app min-h-screen flex items-center justify-center p-4">
-    <div class="glass-card max-w-md w-full p-8 shadow-2xl animate-fade-in text-center relative overflow-hidden">
+<body class="bg-app min-h-screen flex items-center justify-center p-3 sm:p-4">
+    <div class="glass-card max-w-md w-full p-5 sm:p-8 shadow-2xl animate-fade-in text-center relative overflow-hidden">
         <!-- Detalle decorativo de gradiente superior -->
-        <div style="position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, #3b82f6, #10b981);"></div>
+        <div style="position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, #3b82f6, #10b981);"></div>
 
         <!-- Emblema Institucional -->
-        <div class="mb-4">
-            <img src="assets/img/logo_liceo.svg" alt="Liceo Logo" width="80" height="80" class="mx-auto rounded-full shadow-md">
+        <div class="mb-3">
+            <img src="assets/img/logo_liceo.svg" alt="Liceo Logo" width="68" height="68" class="mx-auto rounded-full shadow-md">
         </div>
 
-        <span class="chip chip-blue mb-2">Sistema Integral de Asistencia</span>
-        <h1 class="text-xl font-extrabold text-slate-800 leading-snug mb-1"><?= htmlspecialchars(INSTITUCION_NOMBRE) ?></h1>
-        <p class="text-xs text-slate-500 mb-6 font-medium">Autenticación para Personal Directivo y Docente</p>
+        <span class="chip chip-blue mb-1.5 text-xs">Sistema Integral de Asistencia</span>
+        <h1 class="text-lg sm:text-xl font-extrabold text-slate-800 leading-snug mb-1"><?= htmlspecialchars(INSTITUCION_NOMBRE) ?></h1>
+        <p class="text-xs text-slate-500 mb-5 font-medium">Autenticación para Personal Directivo y Docente</p>
 
         <?php if ($error): ?>
             <div class="glass-card-subtle p-3 rounded-xl mb-4 text-xs font-semibold text-rose-600 border border-rose-200 bg-rose-50/70">
